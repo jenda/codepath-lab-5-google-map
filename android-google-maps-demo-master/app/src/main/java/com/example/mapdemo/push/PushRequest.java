@@ -16,6 +16,7 @@ public class PushRequest {
     public String installationId;
     public String snippet = "";
     public LatLng mapLocation;
+    public String channel;
 
     public PushRequest(JSONObject data) throws JSONException {
         JSONObject location = data.getJSONObject("location");
@@ -23,6 +24,7 @@ public class PushRequest {
         title = data.getString("title");
         snippet = data.optString("snippet", "");
         installationId = data.getString("installationId");
+//        channel = data.getString("channel");
 
         mapLocation = new LatLng(location.getDouble("lat"),
                 location.getDouble("long"));

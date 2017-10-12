@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import com.example.mapdemo.MapDemoActivity;
 import com.parse.ParseInstallation;
 
 import org.json.JSONException;
@@ -56,6 +57,14 @@ public class MarkerUpdatesReceiver extends BroadcastReceiver {
                 JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
                 JSONObject customData = new JSONObject(json.getString("customData"));
 
+                Log.d("jenda", "json "+ json.toString());
+                String channelName = json.getString("channel");
+//                if (!MapDemoActivity.CHANNEL_NAME.equals(channelName)) {
+//
+//                    Log.d("jenda", "ditching: channelName " + channelName);
+//                    return;
+//                }
+
                 PushRequest pushRequest = new PushRequest(customData);
 
                 // don't update markers from yourself
@@ -67,6 +76,7 @@ public class MarkerUpdatesReceiver extends BroadcastReceiver {
                 Log.d(TAG, "got action " + action + " with " + customData);
             } catch (JSONException ex) {
                 Log.d(TAG, "JSON failed!");
+                Log.e(TAG, ex.toString());
             }
         } else {
             Log.d(TAG, "got action " + action);

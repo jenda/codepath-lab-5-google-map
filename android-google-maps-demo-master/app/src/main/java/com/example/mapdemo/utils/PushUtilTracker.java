@@ -5,6 +5,7 @@ package com.example.mapdemo.utils;
  */
 
 
+import com.example.mapdemo.MapDemoActivity;
 import com.example.mapdemo.push.PushRequest;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
@@ -12,6 +13,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.maps.android.ui.IconGenerator;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.util.Hashtable;
 
@@ -26,10 +28,15 @@ public class PushUtilTracker {
 
     public void handleMarkerUpdates(Context context, PushRequest pushRequest,
                                     GoogleMap map) {
+//        if (!MapDemoActivity.CHANNEL_NAME.equals(pushRequest.channel)) {
+//            Log.d("jenda", "pushRequest.channel " + pushRequest.channel);
+//            return;
+//        }
         Marker marker = userMarkerMap.get(pushRequest.markerId);
 
         // If marker already exists, simply update the position and title.
         if (marker != null) {
+            Log.d("jenda", "updating position");
             marker.setPosition(pushRequest.mapLocation);
             marker.setTitle(pushRequest.title);
         } else {

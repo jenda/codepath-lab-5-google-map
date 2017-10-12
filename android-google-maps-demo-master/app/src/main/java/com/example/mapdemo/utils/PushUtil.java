@@ -5,6 +5,8 @@ package com.example.mapdemo.utils;
  */
 
 
+import android.util.Log;
+
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
@@ -36,6 +38,7 @@ public class PushUtil {
         String installationId = ParseInstallation.getCurrentInstallation().getInstallationId();
 
         String markerId = installationId + "_" + marker.getId();
+        Log.d("jenda", "markerId " + markerId);
         payload.put("markerId", markerId);
 
         // Use so we can discard push notifications sent to ourselves.
