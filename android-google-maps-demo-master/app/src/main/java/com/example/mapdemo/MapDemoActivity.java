@@ -20,7 +20,9 @@ import android.widget.Toast;
 import com.example.mapdemo.push.MarkerUpdatesReceiver;
 import com.example.mapdemo.push.PushRequest;
 import com.example.mapdemo.test.PushTest;
+import com.example.mapdemo.utils.MapUtils;
 import com.example.mapdemo.utils.PushUtil;
+import com.example.mapdemo.utils.PushUtilTracker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -54,13 +56,14 @@ import static com.google.android.gms.location.LocationServices.getFusedLocationP
 public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMapLongClickListener,
         GoogleMap.OnMarkerDragListener, MarkerUpdatesReceiver.PushInterface {
 
-    private static final String CHANNEL_NAME = "android-2017";
+    public static final String CHANNEL_NAME = "android-2017";
     private SupportMapFragment mapFragment;
     private GoogleMap map;
     private LocationRequest mLocationRequest;
     Location mCurrentLocation;
     private long UPDATE_INTERVAL = 60000;  /* 60 secs */
     private long FASTEST_INTERVAL = 5000; /* 5 secs */
+    private PushUtilTracker pushUtilTracker;
 
     private final static String KEY_LOCATION = "location";
 
@@ -77,6 +80,7 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_demo_activity);
         ParsePush.subscribeInBackground(CHANNEL_NAME);
+        pushUtilTracker = new PushUtilTracker();
 
 
         if (TextUtils.isEmpty(getResources().getString(R.string.google_maps_api_key))) {
@@ -112,6 +116,7 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
         if (markerUpdatesReceiver != null) {
             unregisterReceiver(markerUpdatesReceiver);
         }
+        pushUtilTracker = null;
     }
 
     protected void loadMap(GoogleMap googleMap) {
@@ -296,7 +301,8 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
                         String snippet = ((EditText) alertDialog.findViewById(R.id.etSnippet)).
                                 getText().toString();
                         // Creates and adds marker to the map
-                        addSpeechBubble(point, title, snippet);
+                        MapUtils.addSpeechBubble(getApplicationContext(), map,
+                                point, title, snippet);
 
                     }
                 });
@@ -309,42 +315,6 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
 
         // Display the dialog
         alertDialog.show();
-    }
-
-    private void addPin(final LatLng point, final String title, final String snippet) {
-
-        BitmapDescriptor icon =
-                BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
-        // Extract content from alert dialog
-
-        addMarker(point, title, snippet, icon);
-    }
-
-    private void addSpeechBubble(final LatLng point, final String title, final String snippet) {
-
-        IconGenerator iconGenerator = new IconGenerator(MapDemoActivity.this);
-
-        // Possible color options:
-        // STYLE_WHITE, STYLE_RED, STYLE_BLUE, STYLE_GREEN, STYLE_PURPLE, STYLE_ORANGE
-        iconGenerator.setStyle(IconGenerator.STYLE_GREEN);
-        // Swap text here to live inside speech bubble
-        Bitmap bitmap = iconGenerator.makeIcon(title);
-        // Use BitmapDescriptorFactory to create the marker
-        BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(bitmap);
-
-        addMarker(point, title, snippet, icon);
-    }
-
-    private void addMarker(final LatLng point, final String title, final String snippet,
-                           final BitmapDescriptor icon) {
-        Marker marker = map.addMarker(new MarkerOptions()
-                .position(point)
-                .title(title)
-                .snippet(snippet)
-                .icon(icon));
-        marker.setDraggable(true);
-
-        PushUtil.sendPushNotification(marker, CHANNEL_NAME);
     }
 
     @Override
@@ -364,6 +334,8 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
     @Override
     public void onMarkerUpdate(PushRequest pushRequest) {
         Toast.makeText(this, "pushRequest " + pushRequest.title , Toast.LENGTH_SHORT).show();
+
+        pushUtilTracker.handleMarkerUpdates(this, pushRequest, map);
     }
 
 
