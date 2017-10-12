@@ -45,7 +45,8 @@ import permissions.dispatcher.RuntimePermissions;
 import static com.google.android.gms.location.LocationServices.getFusedLocationProviderClient;
 
 @RuntimePermissions
-public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMapLongClickListener {
+public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMapLongClickListener,
+        GoogleMap.OnMarkerDragListener{
 
     private SupportMapFragment mapFragment;
     private GoogleMap map;
@@ -99,6 +100,7 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
             MapDemoActivityPermissionsDispatcher.getMyLocationWithCheck(this);
             MapDemoActivityPermissionsDispatcher.startLocationUpdatesWithCheck(this);
             map.setOnMapLongClickListener(this);
+            map.setOnMarkerDragListener(this);
         } else {
             Toast.makeText(this, "Error - Map was null!!", Toast.LENGTH_SHORT).show();
         }
@@ -287,6 +289,8 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
                                 .title(title)
                                 .snippet(snippet)
                                 .icon(icon));
+                        marker.setDraggable(true);
+
                     }
                 });
 
@@ -298,6 +302,23 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
 
         // Display the dialog
         alertDialog.show();
+    }
+
+    
+
+    @Override
+    public void onMarkerDragStart(Marker marker) {
+//        marker.remove();
+    }
+
+    @Override
+    public void onMarkerDrag(Marker marker) {
+
+    }
+
+    @Override
+    public void onMarkerDragEnd(Marker marker) {
+//        marker.
     }
 
 
