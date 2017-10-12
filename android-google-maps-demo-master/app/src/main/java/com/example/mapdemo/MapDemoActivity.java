@@ -273,23 +273,7 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
                         String snippet = ((EditText) alertDialog.findViewById(R.id.etSnippet)).
                                 getText().toString();
                         // Creates and adds marker to the map
-
-                        IconGenerator iconGenerator = new IconGenerator(MapDemoActivity.this);
-
-                        // Possible color options:
-                        // STYLE_WHITE, STYLE_RED, STYLE_BLUE, STYLE_GREEN, STYLE_PURPLE, STYLE_ORANGE
-                                                iconGenerator.setStyle(IconGenerator.STYLE_GREEN);
-                        // Swap text here to live inside speech bubble
-                        Bitmap bitmap = iconGenerator.makeIcon(title);
-                        // Use BitmapDescriptorFactory to create the marker
-                        BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(bitmap);
-
-                        Marker marker = map.addMarker(new MarkerOptions()
-                                .position(point)
-                                .title(title)
-                                .snippet(snippet)
-                                .icon(icon));
-                        marker.setDraggable(true);
+                        addSpeechBubble(point, title, snippet);
 
                     }
                 });
@@ -304,7 +288,41 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
         alertDialog.show();
     }
 
-    
+    private void addPin(final LatLng point, final String title, final String snippet) {
+
+        BitmapDescriptor icon =
+                BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
+        // Extract content from alert dialog
+
+        IconGenerator iconGenerator = new IconGenerator(MapDemoActivity.this);
+
+        Marker marker = map.addMarker(new MarkerOptions()
+                .position(point)
+                .title(title)
+                .snippet(snippet)
+                .icon(icon));
+        marker.setDraggable(true);
+    }
+
+    private void addSpeechBubble(final LatLng point, final String title, final String snippet) {
+
+        IconGenerator iconGenerator = new IconGenerator(MapDemoActivity.this);
+
+        // Possible color options:
+        // STYLE_WHITE, STYLE_RED, STYLE_BLUE, STYLE_GREEN, STYLE_PURPLE, STYLE_ORANGE
+        iconGenerator.setStyle(IconGenerator.STYLE_GREEN);
+        // Swap text here to live inside speech bubble
+        Bitmap bitmap = iconGenerator.makeIcon(title);
+        // Use BitmapDescriptorFactory to create the marker
+        BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(bitmap);
+
+        Marker marker = map.addMarker(new MarkerOptions()
+                .position(point)
+                .title(title)
+                .snippet(snippet)
+                .icon(icon));
+        marker.setDraggable(true);
+    }
 
     @Override
     public void onMarkerDragStart(Marker marker) {
