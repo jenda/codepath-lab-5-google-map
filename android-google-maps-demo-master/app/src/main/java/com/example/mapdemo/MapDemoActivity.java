@@ -2,6 +2,7 @@ package com.example.mapdemo;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.Bundle;
@@ -16,7 +17,10 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.mapdemo.push.MarkerUpdatesReceiver;
+import com.example.mapdemo.push.PushRequest;
 import com.example.mapdemo.test.PushTest;
+import com.example.mapdemo.utils.PushUtil;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -39,6 +43,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.maps.android.ui.IconGenerator;
+import com.parse.ParsePush;
 
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.RuntimePermissions;
@@ -47,8 +52,9 @@ import static com.google.android.gms.location.LocationServices.getFusedLocationP
 
 @RuntimePermissions
 public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMapLongClickListener,
-        GoogleMap.OnMarkerDragListener{
+        GoogleMap.OnMarkerDragListener, MarkerUpdatesReceiver.PushInterface {
 
+    private static final String CHANNEL_NAME = "android-2017";
     private SupportMapFragment mapFragment;
     private GoogleMap map;
     private LocationRequest mLocationRequest;
@@ -64,10 +70,14 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
      */
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 
+    MarkerUpdatesReceiver markerUpdatesReceiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_demo_activity);
+        ParsePush.subscribeInBackground(CHANNEL_NAME);
+
 
         if (TextUtils.isEmpty(getResources().getString(R.string.google_maps_api_key))) {
             throw new IllegalStateException("You forgot to supply a Google Maps API key");
@@ -91,6 +101,17 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
             Toast.makeText(this, "Error - Map Fragment was null!!", Toast.LENGTH_SHORT).show();
         }
 
+        markerUpdatesReceiver = new MarkerUpdatesReceiver(this);
+        IntentFilter intentFilter = new IntentFilter("com.parse.push.intent.RECEIVE");
+        registerReceiver(markerUpdatesReceiver, intentFilter);
+
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (markerUpdatesReceiver != null) {
+            unregisterReceiver(markerUpdatesReceiver);
+        }
     }
 
     protected void loadMap(GoogleMap googleMap) {
@@ -243,7 +264,7 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
     public void onMapLongClick(LatLng latLng) {
 //        Toast.makeText(this, "Long Press", Toast.LENGTH_LONG).show();
 
-        PushTest.sendPushTest();
+//        PushTest.sendPushTest();
         showAlertDialogForPoint(latLng);
 
     }
@@ -296,14 +317,7 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
                 BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
         // Extract content from alert dialog
 
-        IconGenerator iconGenerator = new IconGenerator(MapDemoActivity.this);
-
-        Marker marker = map.addMarker(new MarkerOptions()
-                .position(point)
-                .title(title)
-                .snippet(snippet)
-                .icon(icon));
-        marker.setDraggable(true);
+        addMarker(point, title, snippet, icon);
     }
 
     private void addSpeechBubble(final LatLng point, final String title, final String snippet) {
@@ -318,17 +332,23 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
         // Use BitmapDescriptorFactory to create the marker
         BitmapDescriptor icon = BitmapDescriptorFactory.fromBitmap(bitmap);
 
+        addMarker(point, title, snippet, icon);
+    }
+
+    private void addMarker(final LatLng point, final String title, final String snippet,
+                           final BitmapDescriptor icon) {
         Marker marker = map.addMarker(new MarkerOptions()
                 .position(point)
                 .title(title)
                 .snippet(snippet)
                 .icon(icon));
         marker.setDraggable(true);
+
+        PushUtil.sendPushNotification(marker, CHANNEL_NAME);
     }
 
     @Override
     public void onMarkerDragStart(Marker marker) {
-//        marker.remove();
     }
 
     @Override
@@ -338,7 +358,12 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
 
     @Override
     public void onMarkerDragEnd(Marker marker) {
-//        marker.
+        PushUtil.sendPushNotification(marker, CHANNEL_NAME);
+    }
+
+    @Override
+    public void onMarkerUpdate(PushRequest pushRequest) {
+        Toast.makeText(this, "pushRequest " + pushRequest.title , Toast.LENGTH_SHORT).show();
     }
 
 
