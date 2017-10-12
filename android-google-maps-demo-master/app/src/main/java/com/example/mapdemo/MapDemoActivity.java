@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.mapdemo.test.PushTest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -242,6 +243,7 @@ public class MapDemoActivity extends AppCompatActivity implements GoogleMap.OnMa
     public void onMapLongClick(LatLng latLng) {
 //        Toast.makeText(this, "Long Press", Toast.LENGTH_LONG).show();
 
+        PushTest.sendPushTest();
         showAlertDialogForPoint(latLng);
 
     }
